@@ -549,7 +549,7 @@ def test_mcif_read_ig_cvt_hidden_runner():
             sources.append(ctx_file)
     
     # Include path for simulate_x_tick.vh
-    include_dir = str(proj_path / "sources")
+    include_dir = str(proj_path / "includes")
     
     runner = get_runner(sim)
     runner.build(
