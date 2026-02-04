@@ -15,4 +15,29 @@ Key requirements:
 5. Implement valid/ready flow control with three-way interlock
 6. Include an output pipeline stage (skid buffer) for timing
 
+Important behaviors to handle:
+
+Address Alignment:
+- AXI addresses must be aligned to 64-byte boundaries
+
+Burst Length Calculation:
+- The AXI burst length is derived from the command size field
+- Under certain conditions involving complete single transfers with swizzle enabled and odd sizes, an extra beat may be needed
+
+Context Queue Flags:
+- The module must indicate when the first or last beats should be dropped
+- First beat drop (fdrop): Applies when the start address begins at a 32-byte offset within a 64-byte AXI beat, for first transactions
+- Last beat drop (ldrop): Applies when the end address falls on a 32-byte boundary within a 64-byte beat, for last transactions
+
+Three-Way Flow Control:
+- The module can only accept commands when all three conditions are met:
+  - AXI output pipeline is ready
+  - Context queue is ready  
+  - Outstanding transaction count is below the configured limit
+
+Outstanding Counter:
+- Tracks the number of outstanding AXI beats
+- Increments when AXI transactions are issued
+- Decrements when completions arrive (eg2ig_axi_vld signal, which has a cycle delay)
+
 Study the upstream spt module to understand the input packet format and the parent ig module to understand the expected interface behavior.
