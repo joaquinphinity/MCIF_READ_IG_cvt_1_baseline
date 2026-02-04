@@ -35,6 +35,7 @@
 `endif
 
 // newly recommended tick defines
+// (-sv parsing is enabled everywhere now, and explicit widths are no longer needed)
 `ifdef SIMULATION_ONLY
 `define sv_x_or_0  'x
 `define sv_x_or_1  'x
