@@ -1,43 +1,32 @@
-Implement the internal logic of NV_NVDLA_MCIF_READ_IG_cvt module in sources/NV_NVDLA_MCIF_READ_IG_cvt.v.
+Implement the internal logic of the NV_NVDLA_MCIF_READ_IG_cvt module in sources/NV_NVDLA_MCIF_READ_IG_cvt.v.
 
-This module converts internal NVDLA read commands from the splitter (spt) into AXI4 AR channel transactions. The module interface (ports) is already defined.
+This module is a converter that takes read commands from an internal splitter and transforms them into AXI4 read address channel transactions. Think of it as a translator between NVDLA's internal command format and the standard AXI protocol. The module ports are already defined for you.
 
-Context files provided:
-- sources/NV_NVDLA_MCIF_READ_IG_spt.v - Upstream splitter that generates input commands
-- sources/NV_NVDLA_MCIF_READ_ig.v - Parent module showing how this block is instantiated
-- sources/NV_NVDLA_XXIF_libs.v - Shared library modules (FIFOs, pipes)
+You have access to several context files that will help you understand how this module fits into the larger system:
+- The upstream splitter module shows how commands are formatted before they arrive here
+- The parent module shows how this converter is instantiated and connected
+- The shared library contains useful building blocks like pipeline stages
 
-Key requirements:
-1. Unpack the 75-bit input command packet (spt2cvt_req_pd)
-2. Generate AXI AR channel signals (araddr, arid, arlen, arvalid)
-3. Track outstanding transactions using os_cnt with configurable limit
-4. Write context to CQ (cq_wr_pd, cq_wr_pvld, cq_wr_thread_id)
-5. Implement valid/ready flow control with three-way interlock
-6. Include an output pipeline stage (skid buffer) for timing
+What the module needs to do:
 
-Important behaviors to handle:
+The incoming 75-bit command packet contains everything needed to build an AXI transaction: a client ID, a memory address, a size indicating how many 64-byte chunks to transfer, and several flags that describe the nature of the transfer. You can find the exact bit positions by studying how the upstream splitter packs its output.
 
-Address Alignment:
-- AXI addresses must be aligned to 64-byte boundaries
+For the AXI side, you need to generate standard read address channel signals. The address must be aligned to 64-byte boundaries by masking off the lower bits. The burst length comes from the size field, though in some cases involving single complete transfers with swizzle and odd sizes, you may need an extra beat.
 
-Burst Length Calculation:
-- The AXI burst length is derived from the command size field
-- Under certain conditions involving complete single transfers with swizzle enabled and odd sizes, an extra beat may be needed
+The module also writes context information to a queue so that downstream logic knows how to handle the returning data. This context packet is 7 bits and needs to carry the burst length, some of the original flags (swizzle, odd, last transfer indicator), plus two drop flags that tell downstream whether to discard the first or last beat of data.
 
-Context Queue Flags:
-- The module must indicate when the first or last beats should be dropped
-- First beat drop (fdrop): Applies when the start address begins at a 32-byte offset within a 64-byte AXI beat, for first transactions
-- Last beat drop (ldrop): Applies when the end address falls on a 32-byte boundary within a 64-byte beat, for last transactions
+Flow control is important here. The module should only accept new commands when three things are true: the AXI output path is ready, the context queue can accept a write, and there's room for more outstanding transactions. The outstanding counter tracks how many AXI beats are still in flight. It goes up when transactions are issued and comes back down when completions arrive through a feedback signal.
 
-Three-Way Flow Control:
-- The module can only accept commands when all three conditions are met:
-  - AXI output pipeline is ready
-  - Context queue is ready  
-  - Outstanding transaction count is below the configured limit
+For timing closure, include a pipeline register stage (often called a skid buffer) on the AXI output path.
 
-Outstanding Counter:
-- Tracks the number of outstanding AXI beats
-- Increments when AXI transactions are issued
-- Decrements when completions arrive (eg2ig_axi_vld signal, which has a cycle delay)
+Context queue packet format (7 bits):
+The context queue data packs the following fields from least significant bit: burst length in bits [1:0], then the swizzle flag, odd flag, last transfer flag, first-beat-drop flag, and last-beat-drop flag in the upper bits.
 
-Study the upstream spt module to understand the input packet format and the parent ig module to understand the expected interface behavior.
+Thread ID:
+The context queue thread ID output should simply pass through the client ID from the incoming command.
+
+Outstanding counter behavior:
+When a transaction is issued, the counter increases by the number of beats in that transaction (which is the burst length plus one). The decrement signal from completions should be registered (delayed by one cycle) before being used to update the counter.
+
+AXI output widths:
+The AXI ID and length outputs are wider than the internal values. Zero-extend the 4-bit client ID to 8 bits for the AXI ID, and zero-extend the 2-bit burst length to 4 bits for the AXI length.
