@@ -1,0 +1,18 @@
+Implement the internal logic of NV_NVDLA_MCIF_READ_IG_cvt module in sources/NV_NVDLA_MCIF_READ_IG_cvt.v.
+
+This module converts internal NVDLA read commands from the splitter (spt) into AXI4 AR channel transactions. The module interface (ports) is already defined.
+
+Context files provided:
+- sources/NV_NVDLA_MCIF_READ_IG_spt.v - Upstream splitter that generates input commands
+- sources/NV_NVDLA_MCIF_READ_ig.v - Parent module showing how this block is instantiated
+- sources/NV_NVDLA_XXIF_libs.v - Shared library modules (FIFOs, pipes)
+
+Key requirements:
+1. Unpack the 75-bit input command packet (spt2cvt_req_pd)
+2. Generate AXI AR channel signals (araddr, arid, arlen, arvalid)
+3. Track outstanding transactions using os_cnt with configurable limit
+4. Write context to CQ (cq_wr_pd, cq_wr_pvld, cq_wr_thread_id)
+5. Implement valid/ready flow control with three-way interlock
+6. Include an output pipeline stage (skid buffer) for timing
+
+Study the upstream spt module to understand the input packet format and the parent ig module to understand the expected interface behavior.
