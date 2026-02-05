@@ -27,6 +27,3 @@ When a transaction is issued, the counter increases by the number of beats in th
 
 AXI output widths:
 The AXI ID and length outputs are wider than the internal values. Zero-extend appropriately.
-
-Important workflow note:
-Focus your effort on implementing and testing the RTL logic. Once your implementation passes your own tests, proceed directly to submitting for grading. Do not spend time creating documentation files (README, implementation summaries, etc.) as these are not required and will not affect your score.
