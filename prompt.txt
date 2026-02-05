@@ -27,3 +27,5 @@ When a transaction is issued, the counter increases by the number of beats in th
 
 AXI output widths:
 The AXI ID and length outputs are wider than the internal values. Zero-extend appropriately.
+
+Important: Once your implementation passes your tests, call grade_problem immediately. Do not spend time writing documentation files (README, IMPLEMENTATION_SUMMARY, etc.) - focus only on the implementation and testing.
