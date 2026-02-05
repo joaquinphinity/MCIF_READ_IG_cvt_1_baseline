@@ -1,0 +1,20 @@
+#Hints:
+
+These hints will help you understand some of the trickier aspects of the design.
+
+Hint 1 - Understanding Address Alignment and Drop Flags:
+NVDLA internally works with 32-byte data units, but AXI beats carry 64 bytes each. This means a single AXI beat can contain either one or two 32-byte chunks of useful data. The drop flags tell downstream logic when to ignore half of an AXI beat.
+
+Think about the address bits: the lower bits of the address determine where within a larger block the transfer starts. Specifically, look at bit 5 of the address - it tells you whether you're starting at byte 0 or byte 32 within a 64-byte region.
+
+For the first-beat-drop flag: if this is the first transaction of a sequence AND the starting address is at a 32-byte offset (not at a 64-byte boundary), then the first half of the first AXI beat contains data we don't need.
+
+For the last-beat-drop flag: compute where the transfer ends by adding the size to the starting offset. If this is the last transaction AND the ending position falls on a 64-byte boundary (meaning the last useful data ended in the first half of the beat), then the second half of that beat should be dropped.
+
+Hint 2 - The Swizzle Burst Length Adjustment:
+There is a special case where the AXI burst needs one extra beat. This occurs under very specific conditions: when you have a single complete transfer (both first and last transaction flags are set), the swizzle flag is enabled, AND the size field has an odd value.
+
+The size field in the command represents 64-byte chunks. Normally the AXI burst length is derived from the upper bits of size. But in the swizzle case described above, one additional beat is needed. Check the least significant bit of the size field to determine oddness.
+
+Hint 3 - Offset Calculation:
+The address bits [7:5] give you a 3-bit offset value representing the position within a 256-byte block. Use bit 0 of this offset (which corresponds to address bit 5) to determine 32-byte alignment. The end offset is simply the start offset plus the size - bit 0 of this sum determines the ending alignment.
