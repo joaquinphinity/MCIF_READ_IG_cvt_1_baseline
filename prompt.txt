@@ -1,8 +1,15 @@
-Implement the internal logic of the NV_NVDLA_MCIF_READ_IG_cvt module in sources/NV_NVDLA_MCIF_READ_IG_cvt.v.
+Implement the internal logic of the NV_NVDLA_MCIF_READ_IG_cvt module in sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_IG_cvt.v.
+
+This module is part of the NVIDIA Deep Learning Accelerator (NVDLA) open-source hardware project. Before diving into implementation, take time to explore the repository structure to understand the overall architecture. NVDLA is a modular deep learning inference accelerator, and this module handles the memory interface for read operations. Understanding the broader context will help you make better implementation decisions.
 
 This module is a converter that takes read commands from an internal splitter and transforms them into AXI4 read address channel transactions. The module ports are already defined for you.
 
-Important: The context files provided contain critical information you will need. Study them carefully before implementing. The upstream splitter module shows exactly how command packets are structured and what each field means. The parent module shows how this converter connects to the rest of the system. The shared library contains reusable building blocks. Do not assume you understand the requirements without first analyzing these files thoroughly.
+Important: The context files provided contain critical information you will need. Study them carefully before implementing:
+- Upstream splitter: sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_IG_spt.v - shows exactly how command packets are structured and what each field means
+- Parent module: sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_ig.v - shows how this converter connects to the rest of the system
+- Shared library: sources/vmod/nvdla/nocif/NV_NVDLA_XXIF_libs.v - contains reusable building blocks including pipeline stages
+
+Do not assume you understand the requirements without first analyzing these files thoroughly.
 
 What the module needs to do:
 
