@@ -751,13 +751,13 @@ def test_mcif_read_ig_cvt_hidden_runner():
     
     sources = [
         proj_path / "tests/timescale.v",
-        proj_path / "sources/NV_NVDLA_MCIF_READ_IG_cvt.v",
+        proj_path / "sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_IG_cvt.v",
     ]
     
     context_files = [
-        proj_path / "sources/NV_NVDLA_MCIF_READ_IG_spt.v",
-        proj_path / "sources/NV_NVDLA_MCIF_READ_ig.v",
-        proj_path / "sources/NV_NVDLA_XXIF_libs.v",
+        proj_path / "sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_IG_spt.v",
+        proj_path / "sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_ig.v",
+        proj_path / "sources/vmod/nvdla/nocif/NV_NVDLA_XXIF_libs.v",
     ]
     
     for ctx_file in context_files:
@@ -765,13 +765,14 @@ def test_mcif_read_ig_cvt_hidden_runner():
             sources.append(ctx_file)
     
     include_dir = str(proj_path / "tests")
+    nvdla_include_dir = str(proj_path / "sources/vmod/include")
     
     runner = get_runner(sim)
     runner.build(
         sources=sources,
         hdl_toplevel="NV_NVDLA_MCIF_READ_IG_cvt",
         always=True,
-        build_args=["-g2012", f"-I{include_dir}"],
+        build_args=["-g2012", f"-I{include_dir}", f"-I{nvdla_include_dir}"],
     )
     runner.test(
         hdl_toplevel="NV_NVDLA_MCIF_READ_IG_cvt",
