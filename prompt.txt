@@ -1,36 +1,23 @@
 Implement the internal logic of the NV_NVDLA_MCIF_READ_IG_cvt module in sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_IG_cvt.v.
 
-This module is part of the NVIDIA Deep Learning Accelerator (NVDLA) open-source hardware project. The sources/ folder contains the complete NVDLA hardware project - take time to explore its structure to understand the overall architecture before diving into implementation. NVDLA is a modular deep learning inference accelerator, and this module handles the memory interface for read operations. Understanding the broader context will help you make better implementation decisions.
+This module is part of the NVIDIA Deep Learning Accelerator (NVDLA) open-source hardware project. The sources/ folder contains the complete NVDLA hardware project - take time to explore its structure to understand the overall architecture before diving into implementation. NVDLA is a modular deep learning inference accelerator, and this module handles the memory interface for read operations.
 
 This module is a converter that takes read commands from an internal splitter and transforms them into AXI4 read address channel transactions. The module ports are already defined for you.
 
-Important: The context files provided contain critical information you will need. Study them carefully before implementing:
-- Upstream splitter: sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_IG_spt.v - shows exactly how command packets are structured and what each field means
-- Parent module: sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_ig.v - shows how this converter connects to the rest of the system
-- Shared library: sources/vmod/nvdla/nocif/NV_NVDLA_XXIF_libs.v - contains reusable building blocks including pipeline stages
-
-Do not assume you understand the requirements without first analyzing these files thoroughly.
+Important: Study the surrounding modules in sources/vmod/nvdla/nocif/ to understand how this converter fits into the system. The upstream splitter, parent module, and shared libraries in this directory contain critical information about packet formats, connection patterns, and reusable building blocks.
 
 What the module needs to do:
 
-The incoming 75-bit command packet contains everything needed to build an AXI transaction: a client ID, a memory address, a size field, and several flags. The exact bit positions and their meanings can be found by studying how the upstream splitter packs its output. Pay close attention to all the fields and flags, as each one affects the behavior of this converter.
+The incoming command packet contains everything needed to build an AXI transaction: a client ID, a memory address, a size field, and several flags. Study how the upstream module packs its output to understand the exact bit positions and their meanings.
 
-For the AXI side, generate standard read address channel signals. The address must be aligned appropriately for AXI transactions. The burst length calculation depends on the size field, but there are edge cases involving the transfer flags and other fields that affect this calculation. Analyze the data path architecture to understand when additional beats might be needed.
+For the AXI side, generate standard read address channel signals. The address must be aligned appropriately for AXI transactions. The burst length calculation depends on the size field, but there are edge cases involving the transfer flags and other fields that affect this calculation.
 
-The module writes context information to a queue for downstream processing. This 7-bit context packet must carry enough information for downstream logic to correctly handle the returning data. This includes the burst length, relevant flags from the original command, and two drop flags. The drop flags indicate when parts of AXI beats should be discarded. To understand when dropping is necessary, think about how NVDLA's internal data width relates to AXI beat sizes, and how address alignment affects which portions of a beat contain useful data versus padding. The logic for these flags can be derived from understanding the memory architecture.
+The module writes context information to a queue for downstream processing. This context packet must carry enough information for downstream logic to correctly handle the returning data, including burst length, relevant flags, and drop flags. The drop flags indicate when parts of AXI beats should be discarded due to alignment considerations. Study how downstream modules consume this context to understand the expected format.
 
 Flow control requires coordination between three conditions: the AXI output must be ready, the context queue must be able to accept writes, and there must be room for outstanding transactions. The outstanding counter tracks beats in flight and must be managed correctly based on transaction issuance and completion feedback.
 
-Include a pipeline register stage on the AXI output path for timing closure. You can find examples of such pipeline stages in the shared library.
+Include a pipeline register stage on the AXI output path for timing closure.
 
-Context queue packet format (7 bits):
-The context queue data packs fields starting from the least significant bit: burst length in bits [1:0], then swizzle flag, odd flag, last transfer flag, first-beat-drop flag, and last-beat-drop flag in the upper bits.
-
-Thread ID:
 The context queue thread ID output should pass through the client ID from the incoming command.
 
-Outstanding counter behavior:
-When a transaction is issued, the counter increases by the number of beats in that transaction. The decrement signal from completions should be registered before being used to update the counter.
-
-AXI output widths:
 The AXI ID and length outputs are wider than the internal values. Zero-extend appropriately.
