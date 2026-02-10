@@ -1,10 +1,12 @@
 Implement the internal logic of the NV_NVDLA_MCIF_READ_IG_cvt module in sources/vmod/nvdla/nocif/NV_NVDLA_MCIF_READ_IG_cvt.v.
 
-This module is part of the NVIDIA Deep Learning Accelerator (NVDLA) open-source hardware project. The sources/ folder contains the complete NVDLA hardware project - take time to explore its structure to understand the overall architecture before diving into implementation. NVDLA is a modular deep learning inference accelerator, and this module handles the memory interface for read operations.
+This module is part of the NVIDIA Deep Learning Accelerator (NVDLA) open-source hardware project. The sources/ folder contains the complete NVDLA hardware project. Before diving into implementation, explore the full project inside the sources/ folder to understand the overall architecture — it is the complete NVDLA hardware project, and the file you need to implement is part of it.
+
+NVDLA has two parallel memory interface paths: MCIF (Memory Controller Interface) and CVIF (Customer Video Interface). Both share the same converter architecture for their read ingress paths. Note that the CVIF read converter (NV_NVDLA_CVIF_READ_IG_cvt.v) has also been left as a skeleton — you cannot use it as a reference. You must infer the correct implementation from the surrounding modules and the overall system architecture.
 
 This module is a converter that takes read commands from an internal splitter and transforms them into AXI4 read address channel transactions. The module ports are already defined for you.
 
-Important: Study the surrounding modules in sources/vmod/nvdla/nocif/ to understand how this converter fits into the system. The upstream splitter, parent module, and shared libraries in this directory contain critical information about packet formats, connection patterns, and reusable building blocks.
+Study the surrounding modules in sources/vmod/nvdla/nocif/ to understand how this converter fits into the system. The upstream splitter, parent module, and shared libraries in this directory contain critical information about packet formats, connection patterns, and reusable building blocks.
 
 What the module needs to do:
 
