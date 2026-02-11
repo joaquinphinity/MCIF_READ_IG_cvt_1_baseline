@@ -4,3 +4,6 @@ Hint 1 - Understanding Drop Flags:
 NVDLA internally works with 32-byte data units, but AXI beats carry 64 bytes each. This means a single AXI beat can contain either one or two 32-byte chunks of useful data. The drop flags tell downstream logic when to ignore half of an AXI beat due to address alignment.
 
 Think about how the starting address alignment and the transfer size affect which portions of the first and last AXI beats contain useful data versus padding that should be discarded.
+
+Hint 2 - Context Queue Timing:
+The CQ write should be valid in the same cycle as the input handshake.
