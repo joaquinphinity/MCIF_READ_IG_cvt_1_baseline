@@ -7,3 +7,6 @@ Think about how the starting address alignment and the transfer size affect whic
 
 Hint 2 - Context Queue Timing:
 The CQ write and thread ID must be valid in the same cycle as the input handshake on spt2cvt_req_valid/ready. Do not add a pipeline stage before the CQ logic — the pipeline should only be on the AXI output path.
+
+Hint 3 - Burst Length Edge Case:
+When the splitter sends a single complete transfer (both first and last flags set) with swizzle enabled, the burst length may need an extra beat. Study how the splitter computes this increment from the command fields.
